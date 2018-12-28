@@ -125,9 +125,26 @@
             </v-flex>
           </v-layout>
         </v-container>
+        <v-snackbar
+          v-model="snackbar"
+          bottom right
+        >
+          {{ text }}
+          <v-btn
+            color="red"
+            flat
+            @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </v-snackbar>
       </v-app>
     </div>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
     <script>
@@ -139,6 +156,8 @@
             'New Arena',
             'Chat'
           ],
+          snackbar: false,
+          text: 'You need to write something!',
           autocompletes: {
             types: [
               {
@@ -203,19 +222,22 @@
         },
         methods: {
           submit: function() {
-            this.socket.emit('chat message', this.message);
-            this.message = {
-              type: null,
-              format: null,
-              rotation: null,
-              chat: null,
-              username: this.message.username,
-              id: null
-            };
+            if (this.select == 'Chat' && this.message.chat == null) {
+              this.snackbar = true
+            } else {
+              this.socket.emit('chat message', this.message);
+              this.message = {
+                type: null,
+                format: null,
+                rotation: null,
+                chat: null,
+                username: this.message.username,
+                id: null
+              };
+            }
           },
           scroll_to_bottom: function() {
-            var container = this.$el.querySelector("#container");
-            container.scrollTop = container.scrollHeight;
+            $("#container").animate({ scrollTop: $('#container').prop("scrollHeight")}, 1000);
           }
         },
         computed: {

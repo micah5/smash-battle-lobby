@@ -11,9 +11,14 @@ var messages = []
 
 io.on('connection', function(socket){
   socket.on('chat message', function(message){
-    message['date'] = new Date(Date.now()).toLocaleString()
-    messages.push(message)
-    io.emit('chat message', message);
+    if (message.id == null && message.chat == null) {
+      console.log('send error message')
+      //todo: send error message
+    } else {
+      message['date'] = new Date(Date.now()).toLocaleString()
+      messages.push(message)
+      io.emit('chat message', message);
+    }
   });
   socket.on('init', function() {
     io.emit('init', messages);

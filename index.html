@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Smash Ultimate Battle Arena Lobby</title>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons' rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <style>
+      #app {
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <v-app>
+        <v-container fill-height>
+          <v-layout row wrap align-center>
+            <v-flex xs12 sm6 offset-sm3>
+              <v-layout column>
+                <h3 class="white--text">Smash Ultimate Battle Arena Lobby</h3>
+                <h4 class="white--text mb-1">Find new arenas to join</h4>
+                <v-card class="mb-2 pb-1 pt-1" style="height: 35vh; overflow-y: scroll;" id="container">
+                  <v-list dense>
+                    <v-list-tile v-for="message in messages">
+                      <v-list-tile-action v-if="message.id != null">
+                        <v-icon color="black">star</v-icon>
+                      </v-list-tile-action>
+                      <v-list-tile-content v-if="message.id != null">
+                        <v-list-tile-title>{{message.id}}:
+                          <span :style="{'color': autocompletes.types.find(obj => { return obj.name === message.type }).color }">
+                            {{message.type}}
+                          </span>
+                        </v-list-tile-title>
+                        <v-list-tile-sub-title v-if="message.format">{{message.format}}
+                          <span v-if="message.format && message.rotation">
+                            , {{message.rotation}}
+                          </span>
+                          <span v-if="message.chat" class='black--text'>
+                            "{{message.chat}}"
+                          </span>
+                        </v-list-tile-sub-title>
+                        <!--<div style="height: 1px; width: 100%; background-color: #E0E0E0; margin-top: 5px;"></div>-->
+                      </v-list-tile-content>
+                      <v-list-tile-content v-else-if="message.chat">
+                        <v-list-tile-sub-title>
+                          <span class="black--text" v-if="message.username">{{message.username}}:</span>
+                          {{message.chat}}
+                        </v-list-tile-sub-title>
+                      </v-list-tile-content>
+                      <div style="position: absolute; right: 0; top: 0; color: #B2B2B2; font-style: italic; margin-right: 1em;">{{message.date}}</div>
+                    </v-list-tile>
+                  </v-list>
+                </v-card>
+                <v-select
+                  v-model="select"
+                  :items="items"
+                  label="Add New"
+                  hide-details
+                  class="mb-1"
+                  solo
+                ></v-select>
+                <v-slide-y-transition>
+                  <div v-show="select == 'New Arena'">
+                    <v-combobox
+                      v-model="message.type"
+                      :items="autocomplete_types"
+                      label="Type"
+                      hide-details
+                      class="mb-1"
+                      solo
+                    ></v-combobox>
+                    <v-combobox
+                      v-model="message.format"
+                      :items="autocompletes.formats"
+                      label="Format"
+                      hide-details
+                      class="mb-1"
+                      solo
+                    ></v-combobox>
+                    <v-combobox
+                      v-model="message.rotations"
+                      :items="autocompletes.rotations"
+                      label="Rotation"
+                      hide-details
+                      class="mb-1"
+                      solo
+                    ></v-combobox>
+                    <v-text-field
+                      v-model="message.id"
+                      @keyup.enter.native="submit"
+                      label="ID"
+                      hide-details
+                      class="mb-1"
+                      solo
+                    ></v-text-field>
+                  </div>
+                </v-slide-y-transition>
+                <v-text-field
+                  v-model="message.username"
+                  @keyup.enter.native="submit"
+                  label="Username"
+                  placeholder="Username"
+                  hide-details
+                  class="mb-1"
+                  solo
+                ></v-text-field>
+                <v-text-field
+                  v-model="message.chat"
+                  @keyup.enter.native="submit"
+                  label="Chat Message"
+                  :placeholder="select == 'New Arena' ? 'Optional Chat Message' : 'Message'"
+                  hide-details
+                  class="mb-1"
+                  solo
+                ></v-text-field>
+                <v-btn fab @click="submit"
+                  :color="select == 'New Arena' ? 'white' : 'black'"
+                  :dark="select != 'New Arena'"
+                  :flat="select == 'New Arena'"
+                  style="margin-left: auto;">
+                  <v-icon>{{select == 'New Arena' ? 'add' : 'add_comment'}}</v-icon>
+                </v-btn>
+              </v-layout>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-app>
+    </div>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          select: 'New Arena',
+          items: [
+            'New Arena',
+            'Chat'
+          ],
+          autocompletes: {
+            types: [
+              {
+                name: 'All Skill Levels',
+                color: 'orange'
+              },
+              {
+                name: 'Beginners Only',
+                color: 'green'
+              },
+              {
+                name: 'Veteran Players',
+                color: 'red'
+              },
+              {
+                name: 'Glorious Smashers',
+                color: 'purple'
+              },
+              {
+                name: 'Anything Goes',
+                color: 'blue'
+              },
+              {
+                name: 'Playground',
+                color: 'cyan'
+              }
+            ],
+            formats: [
+              '4-Player Smash',
+              '3-Player Smash',
+              '1-on-1',
+              'Team Battle'
+            ],
+            rotations: [
+              'Winner Leaves',
+              'Loser Leaves'
+            ]
+          },
+          message: {
+            type: null,
+            format: null,
+            rotation: null,
+            chat: null,
+            username: null,
+            id: null
+          },
+          messages: [],
+          socket: null
+        },
+        mounted: function() {
+          this.socket = io();
+          let vm = this;
+          this.socket.emit('init');
+          this.socket.on('init', function(messages){
+            vm.messages = messages
+            vm.scroll_to_bottom();
+          });
+          this.socket.on('chat message', function(msg){
+            vm.messages.push(msg)
+            vm.scroll_to_bottom();
+          });
+        },
+        methods: {
+          submit: function() {
+            this.socket.emit('chat message', this.message);
+            this.message = {
+              type: null,
+              format: null,
+              rotation: null,
+              chat: null,
+              username: this.message.username,
+              id: null
+            };
+          },
+          scroll_to_bottom: function() {
+            var container = this.$el.querySelector("#container");
+            container.scrollTop = container.scrollHeight;
+          }
+        },
+        computed: {
+          autocomplete_types: function() {
+            let arr = []
+            for (let type of this.autocompletes.types) {
+              arr.push(type.name)
+            }
+            return arr
+          }
+        }
+      })
+    </script>
+  </body>
+</html>

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
     <style>
       #app {
-        background-color: red;
+        background-color: #2B5A78;
       }
     </style>
   </head>
@@ -28,7 +28,7 @@
                       </v-list-tile-action>
                       <v-list-tile-content v-if="message.id != null">
                         <v-list-tile-title>{{message.id}}:
-                          <span :style="{'color': autocompletes.types.find(obj => { return obj.name === message.type }).color }">
+                          <span :style="{'color': find_colour(message.type) }">
                             {{message.type}}
                           </span>
                         </v-list-tile-title>
@@ -234,6 +234,13 @@
                 username: this.message.username,
                 id: null
               };
+            }
+          },
+          find_colour: function(type) {
+            try {
+              return this.autocompletes.types.find(obj => { return obj.name === type }).color
+            } catch (err) {
+              return 'black'
             }
           },
           scroll_to_bottom: function() {
